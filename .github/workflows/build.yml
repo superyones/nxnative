@@ -39,12 +39,41 @@ jobs:
           echo "Downloading Update NSP..."
           rclone copy "gdrive:GameFiles/update.nsp" game_files/ -P
 
-      - name: Patch Source Code to Force Disable Metal4
+      - name: Inject NO_METAL4 via Compiler Interceptor
         run: |
-          find . -name "nvn_rec.h" -exec sed -i '' '1s/^/#define NO_METAL4 1\n/' {} +
-          find . -name "nvn_deswizzle_gpu.h" -exec sed -i '' '1s/^/#define NO_METAL4 1\n/' {} +
+          mkdir -p $HOME/custom_bin
+          
+          # Intercept direct clang calls
+          cat << 'EOF' > $HOME/custom_bin/clang
+          #!/bin/bash
+          exec /usr/bin/clang -DNO_METAL4=1 "$@"
+          EOF
+          
+          # Intercept clang++ calls
+          cat << 'EOF' > $HOME/custom_bin/clang++
+          #!/bin/bash
+          exec /usr/bin/clang++ -DNO_METAL4=1 "$@"
+          EOF
+          
+          # Intercept xcrun clang calls
+          cat << 'EOF' > $HOME/custom_bin/xcrun
+          #!/bin/bash
+          if [ "$1" = "clang" ] || [ "$1" = "clang++" ]; then
+            CMD=$1
+            shift
+            exec /usr/bin/xcrun $CMD -DNO_METAL4=1 "$@"
+          else
+            exec /usr/bin/xcrun "$@"
+          fi
+          EOF
+          
+          chmod +x $HOME/custom_bin/clang $HOME/custom_bin/clang++ $HOME/custom_bin/xcrun
+          echo "$HOME/custom_bin" >> $GITHUB_PATH
 
       - name: Build IPA
+        env:
+          CFLAGS: "-DNO_METAL4=1"
+          OBJCFLAGS: "-DNO_METAL4=1"
         run: |
           python3 scripts/build_ipa_from_nsp.py ./game_files -k ~/prod.keys
 
