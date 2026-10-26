@@ -39,41 +39,24 @@ jobs:
           echo "Downloading Update NSP..."
           rclone copy "gdrive:GameFiles/update.nsp" game_files/ -P
 
-      - name: Inject NO_METAL4 via Compiler Interceptor
+      - name: Patch Source Code to Force Disable Metal4
         run: |
-          mkdir -p $HOME/custom_bin
-          
-          # Intercept direct clang calls
-          cat << 'EOF' > $HOME/custom_bin/clang
-          #!/bin/bash
-          exec /usr/bin/clang -DNO_METAL4=1 "$@"
-          EOF
-          
-          # Intercept clang++ calls
-          cat << 'EOF' > $HOME/custom_bin/clang++
-          #!/bin/bash
-          exec /usr/bin/clang++ -DNO_METAL4=1 "$@"
-          EOF
-          
-          # Intercept xcrun clang calls
-          cat << 'EOF' > $HOME/custom_bin/xcrun
-          #!/bin/bash
-          if [ "$1" = "clang" ] || [ "$1" = "clang++" ]; then
-            CMD=$1
-            shift
-            exec /usr/bin/xcrun $CMD -DNO_METAL4=1 "$@"
-          else
-            exec /usr/bin/xcrun "$@"
-          fi
-          EOF
-          
-          chmod +x $HOME/custom_bin/clang $HOME/custom_bin/clang++ $HOME/custom_bin/xcrun
-          echo "$HOME/custom_bin" >> $GITHUB_PATH
+          python3 -c "
+          import os
+          targets = ['nvn_rec.h', 'nvn_rec.cpp', 'nvn_rec.m', 'nvn_deswizzle_gpu.h', 'nvn_deswizzle_gpu.cpp', 'nvn_deswizzle_gpu.m']
+          for root, dirs, files in os.walk('.'):
+              for f in files:
+                  if f in targets:
+                      p = os.path.join(root, f)
+                      with open(p, 'r', encoding='utf-8') as file:
+                          c = file.read()
+                      if '#define NO_METAL4 1' not in c:
+                          with open(p, 'w', encoding='utf-8') as file:
+                              file.write('#define NO_METAL4 1\n' + c)
+                          print(f'Successfully patched: {p}')
+          "
 
       - name: Build IPA
-        env:
-          CFLAGS: "-DNO_METAL4=1"
-          OBJCFLAGS: "-DNO_METAL4=1"
         run: |
           python3 scripts/build_ipa_from_nsp.py ./game_files -k ~/prod.keys
 
