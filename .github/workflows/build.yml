@@ -19,50 +19,21 @@ jobs:
         run: |
           brew install xcodegen zstd spirv-cross glslang
           brew install --cask dotnet-sdk
-          python3 -m pip install lz4 capstone fonttools "backports.zstd; python_version < '3.14'" requests
+          python3 -m pip install lz4 capstone fonttools "backports.zstd; python_version < '3.14'" gdown
 
       - name: Save Keys
         run: |
           echo "${{ secrets.PROD_KEYS }}" > ~/prod.keys
 
-      - name: Cache Game Files
-        id: cache-game-files
-        uses: actions/cache@v4
-        with:
-          path: game_files
-          key: game-files-nsp-v5
-
-      - name: Download Files from Google Drive (If Not Cached)
-        if: steps.cache-game-files.outputs.cache-hit != 'true'
+      - name: Download Game Files from Google Drive
         run: |
           mkdir -p game_files
           python3 -c "
-          import requests
-
-          def download_gdrive(file_id, destination):
-              URL = 'https://docs.google.com/uc?export=download'
-              session = requests.Session()
-              response = session.get(URL, params={'id': file_id, 'confirm': 't'}, stream=True)
-              
-              token = None
-              for key, value in response.cookies.items():
-                  if key.startswith('download_warning'):
-                      token = value
-                      break
-                      
-              if token:
-                  params = {'id': file_id, 'confirm': token}
-                  response = session.get(URL, params=params, stream=True)
-                  
-              with open(destination, 'wb') as f:
-                  for chunk in response.iter_content(chunk_size=32768):
-                      if chunk:
-                          f.write(chunk)
-
+          import gdown
           print('Downloading Base NSP...')
-          download_gdrive('1H2BlOuxilX56JikLML0RJRSJ-EKgqvY2', 'game_files/base.nsp')
+          gdown.download(id='1H2BlOuxilX56JikLML0RJRSJ-EKgqvY2', output='game_files/base.nsp', quiet=False, fuzzy=True)
           print('Downloading Update NSP...')
-          download_gdrive('1AcGpXZif0oEK1dsK0nwYyiHa6h3fpU3c', 'game_files/update.nsp')
+          gdown.download(id='1AcGpXZif0oEK1dsK0nwYyiHa6h3fpU3c', output='game_files/update.nsp', quiet=False, fuzzy=True)
           "
 
       - name: Patch Source Code to Force Disable Metal4
