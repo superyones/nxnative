@@ -19,7 +19,7 @@ jobs:
         run: |
           brew install xcodegen zstd spirv-cross glslang
           brew install --cask dotnet-sdk
-          python3 -m pip install lz4 capstone fonttools "backports.zstd; python_version < '3.14'"
+          python3 -m pip install lz4 capstone fonttools "backports.zstd; python_version < '3.14'" requests
 
       - name: Save Keys
         run: |
@@ -30,17 +30,40 @@ jobs:
         uses: actions/cache@v4
         with:
           path: game_files
-          key: game-files-nsp-v4
+          key: game-files-nsp-v5
 
       - name: Download Files from Google Drive (If Not Cached)
         if: steps.cache-game-files.outputs.cache-hit != 'true'
         run: |
           mkdir -p game_files
-          echo "Downloading Base NSP..."
-          curl -L -C - -o "game_files/base.nsp" "https://drive.usercontent.google.com/download?id=1H2BlOuxilX56JikLML0RJRSJ-EKgqvY2&export=download&confirm=t"
-          
-          echo "Downloading Update NSP..."
-          curl -L -C - -o "game_files/update.nsp" "https://drive.usercontent.google.com/download?id=1AcGpXZif0oEK1dsK0nwYyiHa6h3fpU3c&export=download&confirm=t"
+          python3 -c "
+          import requests
+
+          def download_gdrive(file_id, destination):
+              URL = 'https://docs.google.com/uc?export=download'
+              session = requests.Session()
+              response = session.get(URL, params={'id': file_id, 'confirm': 't'}, stream=True)
+              
+              token = None
+              for key, value in response.cookies.items():
+                  if key.startswith('download_warning'):
+                      token = value
+                      break
+                      
+              if token:
+                  params = {'id': file_id, 'confirm': token}
+                  response = session.get(URL, params=params, stream=True)
+                  
+              with open(destination, 'wb') as f:
+                  for chunk in response.iter_content(chunk_size=32768):
+                      if chunk:
+                          f.write(chunk)
+
+          print('Downloading Base NSP...')
+          download_gdrive('1H2BlOuxilX56JikLML0RJRSJ-EKgqvY2', 'game_files/base.nsp')
+          print('Downloading Update NSP...')
+          download_gdrive('1AcGpXZif0oEK1dsK0nwYyiHa6h3fpU3c', 'game_files/update.nsp')
+          "
 
       - name: Patch Source Code to Force Disable Metal4
         run: |
