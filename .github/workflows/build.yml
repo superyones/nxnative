@@ -17,22 +17,24 @@ jobs:
 
       - name: Install dependencies
         run: |
-          brew install xcodegen zstd spirv-cross glslang
+          brew install xcodegen zstd spirv-cross glslang rclone
           brew install --cask dotnet-sdk
           python3 -m pip install lz4 capstone fonttools "backports.zstd; python_version < '3.14'"
 
-      - name: Save Keys
+      - name: Save Keys and Setup Rclone
         run: |
           echo "${{ secrets.PROD_KEYS }}" > ~/prod.keys
+          mkdir -p ~/.config/rclone
+          echo "${{ secrets.RCLONE_CONFIG_DATA }}" > ~/.config/rclone/rclone.conf
 
-      - name: Download Game Files from Google Drive
+      - name: Download Game Files via Rclone
         run: |
           mkdir -p game_files
           echo "Downloading Base NSP..."
-          curl -L -b /tmp/cookies.txt -c /tmp/cookies.txt "https://drive.usercontent.google.com/download?id=1H2BlOuxilX56JikLML0RJRSJ-EKgqvY2&export=download&confirm=t" -o game_files/base.nsp
+          rclone copy "gdrive:GameFiles/base.nsp" game_files/ -P
           
           echo "Downloading Update NSP..."
-          curl -L -b /tmp/cookies.txt -c /tmp/cookies.txt "https://drive.usercontent.google.com/download?id=1AcGpXZif0oEK1dsK0nwYyiHa6h3fpU3c&export=download&confirm=t" -o game_files/update.nsp
+          rclone copy "gdrive:GameFiles/update.nsp" game_files/ -P
 
       - name: Patch Source Code to Force Disable Metal4
         run: |
