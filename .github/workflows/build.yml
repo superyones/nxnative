@@ -22,10 +22,13 @@ jobs:
           python3 -m pip install lz4 capstone fonttools "backports.zstd; python_version < '3.14'"
 
       - name: Save Keys and Setup Rclone
+        env:
+          PROD_KEYS_DATA: ${{ secrets.PROD_KEYS }}
+          RCLONE_CONF_DATA: ${{ secrets.RCLONE_CONFIG_DATA }}
         run: |
-          echo "${{ secrets.PROD_KEYS }}" > ~/prod.keys
           mkdir -p ~/.config/rclone
-          echo "${{ secrets.RCLONE_CONFIG_DATA }}" > ~/.config/rclone/rclone.conf
+          echo "$PROD_KEYS_DATA" > ~/prod.keys
+          echo "$RCLONE_CONF_DATA" > ~/.config/rclone/rclone.conf
 
       - name: Download Game Files via Rclone
         run: |
