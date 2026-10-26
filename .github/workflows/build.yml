@@ -44,8 +44,8 @@ jobs:
 
       - name: Patch Source Code to Force Disable Metal4
         run: |
-          sed -i '' '1s/^/#define NO_METAL4 1\n/' gfx/nvn/nvn_rec.h
-          if [ -f gfx/tex/nvn_deswizzle_gpu.h ]; then sed -i '' '1s/^/#define NO_METAL4 1\n/' gfx/tex/nvn_deswizzle_gpu.h; fi
+          find . -name "nvn_rec.h" -exec sed -i '' '1s/^/#define NO_METAL4 1\n/' {} +
+          find . -name "nvn_deswizzle_gpu.h" -exec sed -i '' '1s/^/#define NO_METAL4 1\n/' {} +
 
       - name: Build IPA
         run: |
