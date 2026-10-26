@@ -28,8 +28,8 @@ jobs:
       - name: Download Files from Google Drive
         run: |
           mkdir -p game_files
-          gdown "https://drive.google.com/file/d/13_xQ9D2ZzDZI76BwAAPpXOEjoL23R--x/view?usp=drive_link" -O game_files/base.nsp --fuzzy --confirm-large-file
-          gdown "https://drive.google.com/file/d/1CDQkJS90z1uI-UOYeCjBQwN_Bt_bgSFD/view?usp=drive_link" -O game_files/update.nsp --fuzzy --confirm-large-file
+          gdown "13_xQ9D2ZzDZI76BwAAPpXOEjoL23R--x" -O game_files/base.nsp
+          gdown "1CDQkJS90z1uI-UOYeCjBQwN_Bt_bgSFD" -O game_files/update.nsp
 
       - name: Build IPA
         run: |
