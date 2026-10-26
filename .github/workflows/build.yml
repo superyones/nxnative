@@ -30,14 +30,14 @@ jobs:
         uses: actions/cache@v4
         with:
           path: game_files
-          key: game-files-nsp-v1
+          key: game-files-nsp-v3
 
       - name: Download Files from Google Drive (If Not Cached)
         if: steps.cache-game-files.outputs.cache-hit != 'true'
         run: |
           mkdir -p game_files
-          python3 -c "import gdown; gdown.download(id='13_xQ9D2ZzDZI76BwAAPpXOEjoL23R--x', output='game_files/base.nsp', quiet=False, use_cookies=False)"
-          python3 -c "import gdown; gdown.download(id='1CDQkJS90z1uI-UOYeCjBQwN_Bt_bgSFD', output='game_files/update.nsp', quiet=False, use_cookies=False)"
+          python3 -c "import gdown; gdown.download(id='1H2BlOuxilX56JikLML0RJRSJ-EKgqvY2', output='game_files/base.nsp', quiet=False, use_cookies=False)"
+          python3 -c "import gdown; gdown.download(id='1AcGpXZif0oEK1dsK0nwYyiHa6h3fpU3c', output='game_files/update.nsp', quiet=False, use_cookies=False)"
 
       - name: Patch Source Code to Force Disable Metal4
         run: |
