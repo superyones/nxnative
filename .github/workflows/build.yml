@@ -19,7 +19,7 @@ jobs:
         run: |
           brew install xcodegen zstd spirv-cross glslang
           brew install --cask dotnet-sdk
-          python3 -m pip install lz4 capstone fonttools "backports.zstd; python_version < '3.14'" gdown
+          python3 -m pip install lz4 capstone fonttools "backports.zstd; python_version < '3.14'"
 
       - name: Save Keys
         run: |
@@ -30,14 +30,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: game_files
-          key: game-files-nsp-v3
+          key: game-files-nsp-v4
 
       - name: Download Files from Google Drive (If Not Cached)
         if: steps.cache-game-files.outputs.cache-hit != 'true'
         run: |
           mkdir -p game_files
-          python3 -c "import gdown; gdown.download(id='1H2BlOuxilX56JikLML0RJRSJ-EKgqvY2', output='game_files/base.nsp', quiet=False, use_cookies=False)"
-          python3 -c "import gdown; gdown.download(id='1AcGpXZif0oEK1dsK0nwYyiHa6h3fpU3c', output='game_files/update.nsp', quiet=False, use_cookies=False)"
+          echo "Downloading Base NSP..."
+          curl -L -C - -o "game_files/base.nsp" "https://drive.usercontent.google.com/download?id=1H2BlOuxilX56JikLML0RJRSJ-EKgqvY2&export=download&confirm=t"
+          
+          echo "Downloading Update NSP..."
+          curl -L -C - -o "game_files/update.nsp" "https://drive.usercontent.google.com/download?id=1AcGpXZif0oEK1dsK0nwYyiHa6h3fpU3c&export=download&confirm=t"
 
       - name: Patch Source Code to Force Disable Metal4
         run: |
