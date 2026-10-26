@@ -32,6 +32,9 @@ jobs:
           gdown "1CDQkJS90z1uI-UOYeCjBQwN_Bt_bgSFD" -O game_files/update.nsp
 
       - name: Build IPA
+        env:
+          NO_METAL4: '1'
+          CFLAGS: '-DNO_METAL4'
         run: |
           python3 scripts/build_ipa_from_nsp.py ./game_files -k ~/prod.keys
 
