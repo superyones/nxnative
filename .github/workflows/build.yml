@@ -31,9 +31,9 @@ jobs:
           python3 -c "
           import gdown
           print('Downloading Base NSP...')
-          gdown.download(id='1H2BlOuxilX56JikLML0RJRSJ-EKgqvY2', output='game_files/base.nsp', quiet=False, fuzzy=True)
+          gdown.download(id='1H2BlOuxilX56JikLML0RJRSJ-EKgqvY2', output='game_files/base.nsp', quiet=False)
           print('Downloading Update NSP...')
-          gdown.download(id='1AcGpXZif0oEK1dsK0nwYyiHa6h3fpU3c', output='game_files/update.nsp', quiet=False, fuzzy=True)
+          gdown.download(id='1AcGpXZif0oEK1dsK0nwYyiHa6h3fpU3c', output='game_files/update.nsp', quiet=False)
           "
 
       - name: Patch Source Code to Force Disable Metal4
