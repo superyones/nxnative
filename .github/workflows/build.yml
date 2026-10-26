@@ -39,13 +39,14 @@ jobs:
           python3 -c "import gdown; gdown.download(id='13_xQ9D2ZzDZI76BwAAPpXOEjoL23R--x', output='game_files/base.nsp', quiet=False, use_cookies=False)"
           python3 -c "import gdown; gdown.download(id='1CDQkJS90z1uI-UOYeCjBQwN_Bt_bgSFD', output='game_files/update.nsp', quiet=False, use_cookies=False)"
 
-      - name: Build IPA
-        env:
-          NO_METAL4: '1'
-          EXTRA_CFLAGS: '-DNO_METAL4=1'
-          CFLAGS: '-DNO_METAL4=1'
+      - name: Patch Source Code to Force Disable Metal4
         run: |
-          NO_METAL4=1 python3 scripts/build_ipa_from_nsp.py ./game_files -k ~/prod.keys
+          sed -i '' '1s/^/#define NO_METAL4 1\n/' gfx/nvn/nvn_rec.h
+          if [ -f gfx/tex/nvn_deswizzle_gpu.h ]; then sed -i '' '1s/^/#define NO_METAL4 1\n/' gfx/tex/nvn_deswizzle_gpu.h; fi
+
+      - name: Build IPA
+        run: |
+          python3 scripts/build_ipa_from_nsp.py ./game_files -k ~/prod.keys
 
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
