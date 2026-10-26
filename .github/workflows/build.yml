@@ -1,0 +1,43 @@
+name: Build Switch IPA
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          brew install xcodegen zstd spirv-cross glslang
+          brew install --cask dotnet-sdk
+          python3 -m pip install lz4 capstone fonttools "backports.zstd; python_version < '3.14'"
+
+      - name: Save Keys
+        run: |
+          echo "${{ secrets.PROD_KEYS }}" > ~/prod.keys
+
+      - name: Create Game Folder & Download NSP
+        run: |
+          mkdir -p game_files
+          # Replace the URLs below with your direct download links for the base game and update
+          curl -L "YOUR_BASE_GAME_DIRECT_URL" -o "game_files/base_game.nsp"
+          curl -L "YOUR_UPDATE_DIRECT_URL" -o "game_files/update.nsp"
+
+      - name: Build IPA
+        run: |
+          python3 scripts/build_ipa_from_nsp.py ./game_files -k ~/prod.keys
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: game-ipa
+          path: ./game_files/*.ipa
