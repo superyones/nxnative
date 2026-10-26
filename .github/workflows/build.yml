@@ -25,7 +25,15 @@ jobs:
         run: |
           echo "${{ secrets.PROD_KEYS }}" > ~/prod.keys
 
-      - name: Download Files from Google Drive
+      - name: Cache Game Files
+        id: cache-game-files
+        uses: actions/cache@v4
+        with:
+          path: game_files
+          key: game-files-nsp-v1
+
+      - name: Download Files from Google Drive (If Not Cached)
+        if: steps.cache-game-files.outputs.cache-hit != 'true'
         run: |
           mkdir -p game_files
           gdown "13_xQ9D2ZzDZI76BwAAPpXOEjoL23R--x" -O game_files/base.nsp
@@ -34,9 +42,10 @@ jobs:
       - name: Build IPA
         env:
           NO_METAL4: '1'
-          CFLAGS: '-DNO_METAL4'
+          EXTRA_CFLAGS: '-DNO_METAL4=1'
+          CFLAGS: '-DNO_METAL4=1'
         run: |
-          python3 scripts/build_ipa_from_nsp.py ./game_files -k ~/prod.keys
+          NO_METAL4=1 python3 scripts/build_ipa_from_nsp.py ./game_files -k ~/prod.keys
 
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
